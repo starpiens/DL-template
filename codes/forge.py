@@ -53,7 +53,8 @@ def create_model(model_cfg: dict) \
     return model
 
 
-def create_optimizer(optim_cfg: dict, model: torch.nn.Module) \
+def create_optimizer(optim_cfg: dict,
+                     model: torch.nn.Module) \
         -> torch.optim.Optimizer:
     """Creates an optimizer."""
     name = optim_cfg['name']
@@ -63,7 +64,8 @@ def create_optimizer(optim_cfg: dict, model: torch.nn.Module) \
     return optim
 
 
-def create_scheduler(sch_cfg: dict, optim: torch.optim.Optimizer) \
+def create_scheduler(sch_cfg: dict,
+                     optim: torch.optim.Optimizer) \
         -> torch.optim.lr_scheduler.LRScheduler:
     """Creates a learning rate scheduler."""
     name = sch_cfg['name']
