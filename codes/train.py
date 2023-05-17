@@ -9,19 +9,6 @@ from forge import *
 from utils import AverageMeter
 
 
-def prepare_training(cfg):
-    train_loader = create_train_loader(cfg['train_dataset'])
-    val_loader = create_val_loader(cfg['val_dataset'])
-    model = create_model(cfg['model'])
-    model = nn.DataParallel(model)
-    model = model.cuda()
-    optim = create_optimizer(cfg['optimizer'], model)
-    sched = create_scheduler(cfg['scheduler'], optim)
-    loss_fn = create_loss_fn(cfg['loss'])
-    loss_fn = loss_fn.cuda()
-    return train_loader, val_loader, model, optim, sched, loss_fn
-
-
 def train(loader, model, optim, loss_fn):
     """Train a model for an epoch."""
     model.train()
@@ -63,13 +50,14 @@ def validate(loader, model, metric_fns):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config')
-    parser.add_argument('--gpu')
+    parser.add_argument('config', type=str,
+                        help='Path to config .yaml file')
+    parser.add_argument('gpu', type=str,
+                        help='Number of gpu(s) to use')
+
     args = parser.parse_args()
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-    torch.backends.cudnn.benchmark = True
-
+    # Load config.
     with open(args.config, 'r') as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)
         if cfg is not None:
@@ -77,9 +65,23 @@ def main():
         else:
             raise IOError('Failed to load config.')
 
-    train_loader, val_loader, model, optim, sched, loss_fn = prepare_training(cfg)
+    # Setup environment.
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+    torch.backends.cudnn.benchmark = True
+
+    # Prepare training.
+    train_loader = create_train_loader(cfg['train_dataset'])
+    val_loader = create_val_loader(cfg['val_dataset'])
+    model = create_model(cfg['model'])
+    model = nn.DataParallel(model)
+    model = model.cuda()
+    optim = create_optimizer(cfg['optimizer'], model)
+    sched = create_scheduler(cfg['scheduler'], optim)
+    loss_fn = create_loss_fn(cfg['loss'])
+    loss_fn = loss_fn.cuda()
     num_epochs = cfg['num_epochs']
 
+    # Train.
     for epoch in range(num_epochs):
         train_loss = train(train_loader, model, optim, loss_fn)
         val_loss = validate(val_loader, model, [loss_fn])
