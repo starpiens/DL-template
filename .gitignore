@@ -3,6 +3,8 @@ __pycache__/
 
 # IDE
 .idea/
+.run/
+.vscode/
 
 # MacOS
 .DS_Store
