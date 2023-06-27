@@ -2,3 +2,4 @@ tqdm
 pyyaml
 torch>=2.0.0
 torchvision
+tensorboard
